@@ -28,7 +28,7 @@ const events: Event[] = [
   },
 ];
 
-describe.only('getFilteredEvents', () => {
+describe('getFilteredEvents', () => {
   it("검색어 '기존 회의'에 맞는 이벤트만 반환한다", () => {
     const filteredEvent = getFilteredEvents(events, '기존 회의', new Date('2024-07-04'), 'week');
 
