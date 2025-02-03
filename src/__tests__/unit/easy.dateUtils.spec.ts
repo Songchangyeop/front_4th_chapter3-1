@@ -172,16 +172,14 @@ describe('getWeekDates', () => {
 
 describe('getWeeksAtMonth', () => {
   it('2024년 7월 1일의 올바른 주 정보를 반환해야 한다', () => {
-    const result = getWeekDates(new Date('2024-07-01'));
+    const result = getWeeksAtMonth(new Date('2024-07-01'));
 
     expect(result).toEqual([
-      new Date('2024-06-30'),
-      new Date('2024-07-01'),
-      new Date('2024-07-02'),
-      new Date('2024-07-03'),
-      new Date('2024-07-04'),
-      new Date('2024-07-05'),
-      new Date('2024-07-06'),
+      [null, 1, 2, 3, 4, 5, 6],
+      [7, 8, 9, 10, 11, 12, 13],
+      [14, 15, 16, 17, 18, 19, 20],
+      [21, 22, 23, 24, 25, 26, 27],
+      [28, 29, 30, 31, null, null, null],
     ]);
   });
 });
