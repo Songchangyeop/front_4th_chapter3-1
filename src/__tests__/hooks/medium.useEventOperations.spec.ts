@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import {
@@ -6,9 +6,12 @@ import {
   setupMockHandlerDeletion,
   setupMockHandlerUpdating,
 } from '../../__mocks__/handlersUtils.ts';
+import { events } from '../../__mocks__/response/events.json';
 import { useEventOperations } from '../../hooks/useEventOperations.ts';
 import { server } from '../../setupTests.ts';
 import { Event } from '../../types.ts';
+
+const initialEvents = events as Event[];
 
 // ? Medium: 아래 toastFn과 mock과 이 fn은 무엇을 해줄까요?
 const toastFn = vi.fn();
@@ -21,9 +24,53 @@ vi.mock('@chakra-ui/react', async () => {
   };
 });
 
-it('저장되어있는 초기 이벤트 데이터를 적절하게 불러온다', async () => {});
+it('저장되어있는 초기 이벤트 데이터를 적절하게 불러온다', async () => {
+  const { result } = renderHook(() => useEventOperations(false));
 
-it('정의된 이벤트 정보를 기준으로 적절하게 저장이 된다', async () => {});
+  await waitFor(() => {
+    expect(result.current.events).toEqual(initialEvents);
+  });
+
+  expect(toastFn).toHaveBeenCalledWith({
+    title: '일정 로딩 완료!',
+    status: 'info',
+    duration: 1000,
+  });
+});
+
+it('정의된 이벤트 정보를 기준으로 적절하게 저장이 된다', async () => {
+  const newEvent: Event = {
+    id: '2',
+    title: '점심 먹기',
+    date: '2024-10-16',
+    startTime: '12:00',
+    endTime: '13:00',
+    description: '점심시간',
+    location: '김밥천국',
+    category: '점심',
+    repeat: { type: 'none', interval: 0 },
+    notificationTime: 10,
+  };
+
+  setupMockHandlerCreation(initialEvents);
+
+  const { result } = renderHook(() => useEventOperations(false));
+
+  act(() => {
+    result.current.saveEvent(newEvent);
+  });
+
+  await waitFor(() => {
+    expect(result.current.events).toEqual([...events, newEvent]);
+
+    expect(toastFn).toHaveBeenCalledWith({
+      title: '일정이 추가되었습니다.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  });
+});
 
 it("새로 정의된 'title', 'endTime' 기준으로 적절하게 일정이 업데이트 된다", async () => {});
 
