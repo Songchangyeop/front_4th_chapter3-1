@@ -369,9 +369,9 @@ describe('formatDate', () => {
   });
 
   it('day 파라미터가 제공되면 해당 일자로 포맷팅한다', () => {
-    const result = formatDate(new Date('2025-02-05'));
+    const result = formatDate(new Date('2025-02-05'), 7);
 
-    expect(result).toBe('2025-02-05');
+    expect(result).toBe('2025-02-07');
   });
 
   it('월이 한 자리 수일 때 앞에 0을 붙여 포맷팅한다', () => {
