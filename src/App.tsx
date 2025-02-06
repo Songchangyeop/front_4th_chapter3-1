@@ -94,7 +94,7 @@ function App() {
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
-  const { view, setView, currentDate, holidays, navigate } = useCalendarView();
+  const { view, setView, currentDate, navigate, holidays } = useCalendarView();
   const { searchTerm, filteredEvents, setSearchTerm } = useSearch(events, currentDate, view);
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
@@ -303,10 +303,19 @@ function App() {
           </HStack>
 
           {view === 'week' && (
-            <WeekCalendar filteredEvents={filteredEvents} notifiedEvents={notifiedEvents} />
+            <WeekCalendar
+              filteredEvents={filteredEvents}
+              notifiedEvents={notifiedEvents}
+              currentDate={currentDate}
+            />
           )}
           {view === 'month' && (
-            <MonthCalendar filteredEvents={filteredEvents} notifiedEvents={notifiedEvents} />
+            <MonthCalendar
+              filteredEvents={filteredEvents}
+              notifiedEvents={notifiedEvents}
+              currentDate={currentDate}
+              holidays={holidays}
+            />
           )}
         </VStack>
 

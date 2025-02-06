@@ -14,17 +14,22 @@ import {
 } from '@chakra-ui/react';
 
 import { weekDays } from '../constants/weekDays';
-import { useCalendarView } from '../hooks/useCalendarView';
 import { Event } from '../types';
 import { formatDate, formatMonth, getEventsForDay, getWeeksAtMonth } from '../utils/dateUtils';
 
 interface MonthCalendarProps {
   filteredEvents: Event[];
   notifiedEvents: string[];
+  currentDate: Date;
+  holidays: Record<string, string>;
 }
 
-export const MonthCalendar = ({ filteredEvents, notifiedEvents }: MonthCalendarProps) => {
-  const { currentDate, holidays } = useCalendarView();
+export const MonthCalendar = ({
+  filteredEvents,
+  notifiedEvents,
+  currentDate,
+  holidays,
+}: MonthCalendarProps) => {
   const weeks = getWeeksAtMonth(currentDate);
 
   return (

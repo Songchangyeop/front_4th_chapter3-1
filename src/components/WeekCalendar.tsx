@@ -14,18 +14,20 @@ import {
 } from '@chakra-ui/react';
 
 import { weekDays } from '../constants/weekDays';
-import { useCalendarView } from '../hooks/useCalendarView';
 import { Event } from '../types';
 import { formatWeek, getWeekDates } from '../utils/dateUtils';
 
 interface WeekCalendarProps {
   filteredEvents: Event[];
   notifiedEvents: string[];
+  currentDate: Date;
 }
 
-export const WeekCalendar = ({ filteredEvents, notifiedEvents }: WeekCalendarProps) => {
-  const { currentDate } = useCalendarView();
-
+export const WeekCalendar = ({
+  filteredEvents,
+  notifiedEvents,
+  currentDate,
+}: WeekCalendarProps) => {
   const weekDates = getWeekDates(currentDate);
 
   return (
