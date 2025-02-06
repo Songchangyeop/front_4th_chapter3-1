@@ -9,10 +9,11 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
+import React from 'react';
 
 import { useEventOperations } from '../hooks/useEventOperations';
-import { useSearch } from '../hooks/useSearch';
 import { useEventFormStore } from '../store/eventFormStore';
+import { Event } from '../types';
 
 const NOTIFICATION_OPTIONS = [
   { value: 1, label: '1분 전' },
@@ -24,15 +25,20 @@ const NOTIFICATION_OPTIONS = [
 
 interface EventListProps {
   currentDate: Date;
-  view: 'week' | 'month';
+  searchTerm: string;
+  filteredEvents: Event[];
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   notifiedEvents: string[];
 }
 
-const EventList = ({ currentDate, view, notifiedEvents }: EventListProps) => {
+const EventList = ({
+  notifiedEvents,
+  searchTerm,
+  filteredEvents,
+  setSearchTerm,
+}: EventListProps) => {
   const { editEvent } = useEventFormStore();
-  const { events, deleteEvent } = useEventOperations();
-
-  const { searchTerm, filteredEvents, setSearchTerm } = useSearch(events, currentDate, view);
+  const { deleteEvent } = useEventOperations();
 
   return (
     <VStack data-testid="event-list" w="500px" h="full" overflowY="auto">

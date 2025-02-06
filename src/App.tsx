@@ -1,49 +1,21 @@
-import {
-  BellIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DeleteIcon,
-  EditIcon,
-} from '@chakra-ui/icons';
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Button,
-  Checkbox,
-  CloseButton,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  HStack,
-  IconButton,
-  Input,
-  Select,
-  Text,
-  Tooltip,
-  useToast,
-  VStack,
-} from '@chakra-ui/react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { Box, Flex, Heading, HStack, IconButton, Select, VStack } from '@chakra-ui/react';
 import { useRef, useState } from 'react';
 
 import { EventForm } from './components/EventForm.tsx';
 import EventList from './components/EventList.tsx';
 import { EventOverlapWarningDialog } from './components/EventOverlapWarningDialog.tsx';
 import { MonthCalendar } from './components/MonthCalendar.tsx';
+import { Notifications } from './components/Notifications.tsx';
 import { WeekCalendar } from './components/WeekCalendar.tsx';
 import { useCalendarView } from './hooks/useCalendarView.ts';
-import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { useSearch } from './hooks/useSearch.ts';
 import { Event } from './types';
 
 function App() {
-  const { editEvent } = useEventForm();
-
-  const { events, deleteEvent } = useEventOperations();
+  const { events } = useEventOperations();
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, navigate, holidays } = useCalendarView();
@@ -107,7 +79,13 @@ function App() {
           )}
         </VStack>
 
-        <EventList currentDate={currentDate} view={view} notifiedEvents={notifiedEvents} />
+        <EventList
+          currentDate={currentDate}
+          searchTerm={searchTerm}
+          filteredEvents={filteredEvents}
+          setSearchTerm={setSearchTerm}
+          notifiedEvents={notifiedEvents}
+        />
       </Flex>
 
       <EventOverlapWarningDialog
@@ -118,19 +96,7 @@ function App() {
       />
 
       {notifications.length > 0 && (
-        <VStack position="fixed" top={4} right={4} spacing={2} align="flex-end">
-          {notifications.map((notification, index) => (
-            <Alert key={index} status="info" variant="solid" width="auto">
-              <AlertIcon />
-              <Box flex="1">
-                <AlertTitle fontSize="sm">{notification.message}</AlertTitle>
-              </Box>
-              <CloseButton
-                onClick={() => setNotifications((prev) => prev.filter((_, i) => i !== index))}
-              />
-            </Alert>
-          ))}
-        </VStack>
+        <Notifications notifications={notifications} setNotifications={setNotifications} />
       )}
     </Box>
   );
