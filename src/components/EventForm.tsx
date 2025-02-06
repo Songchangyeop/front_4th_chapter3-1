@@ -11,9 +11,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { useEventForm } from '../hooks/useEventForm';
 import { Event, RepeatType } from '../types';
 import { EventSubmitButton } from './EventSubmitButton';
+import { useEventFormStore } from '../store/eventFormStore';
 import { getTimeErrorMessage } from '../utils/timeValidation';
 
 const CATEGORIES = ['업무', '개인', '가족', '기타'];
@@ -60,7 +60,7 @@ export const EventForm = ({ toggleDialog, addOverlappingEvents }: EventFormProps
     setRepeatInterval,
     repeatEndDate,
     setRepeatEndDate,
-  } = useEventForm();
+  } = useEventFormStore();
 
   return (
     <VStack w="400px" spacing={5} align="stretch">

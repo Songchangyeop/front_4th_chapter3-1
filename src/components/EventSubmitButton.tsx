@@ -1,7 +1,7 @@
 import { Button, useToast } from '@chakra-ui/react';
 
-import { useEventForm } from '../hooks/useEventForm';
 import { useEventOperations } from '../hooks/useEventOperations';
+import { useEventFormStore } from '../store/eventFormStore';
 import { Event, EventForm } from '../types';
 import { findOverlappingEvents } from '../utils/eventOverlap';
 
@@ -35,7 +35,7 @@ export const EventSubmitButton = ({
     repeatInterval,
     repeatEndDate,
     resetForm,
-  } = useEventForm();
+  } = useEventFormStore();
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {

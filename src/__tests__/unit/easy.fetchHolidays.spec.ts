@@ -1,6 +1,6 @@
 import { fetchHolidays } from '../../apis/fetchHolidays';
 
-describe.only('fetchHolidays', () => {
+describe('fetchHolidays', () => {
   it('주어진 월의 공휴일만 반환한다', () => {
     const result = fetchHolidays(new Date('2024-03-01'));
 

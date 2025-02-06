@@ -25,8 +25,6 @@ const saveSchedule = async (
 ) => {
   const { title, date, startTime, endTime, location, description, category } = form;
 
-  await user.click(screen.getAllByText('일정 추가')[0]);
-
   await user.type(screen.getByLabelText('제목'), title);
   await user.type(screen.getByLabelText('날짜'), date);
   await user.type(screen.getByLabelText('시작 시간'), startTime);
@@ -64,6 +62,10 @@ const newEvent = {
   notificationTime: 10,
   repeat: { type: 'daily', interval: 0, endDate: '2025-02-10' },
 } as EventForm;
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 // ! HINT. "검색 결과가 없습니다"는 초기에 노출되는데요. 그럼 검증하고자 하는 액션이 실행되기 전에 검증해버리지 않을까요? 이 테스트를 신뢰성있게 만드려면 어떻게 할까요?
 describe('일정 CRUD 및 기본 기능', () => {
@@ -336,10 +338,6 @@ it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트
   const eventList = screen.getByTestId('event-list');
 
   await saveSchedule(user, newEvent);
-
-  act(() => {
-    vi.advanceTimersByTime(1000);
-  });
 
   await waitFor(() => {
     expect(within(eventList).getByText('기존 회의')).toBeInTheDocument();
