@@ -1,7 +1,6 @@
 import { ChakraProvider } from '@chakra-ui/react';
-import { render, screen, within, act, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, within, act, waitFor } from '@testing-library/react';
 import { UserEvent, userEvent } from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
 import { ReactElement } from 'react';
 
 import {
@@ -9,9 +8,7 @@ import {
   setupMockHandlerDeletion,
   setupMockHandlerUpdating,
 } from '../__mocks__/handlersUtils';
-import { events } from '../__mocks__/response/events.json';
 import App from '../App';
-import { server } from '../setupTests';
 import { Event, EventForm } from '../types';
 
 // ! HINT. 이 유틸을 사용해 리액트 컴포넌트를 렌더링해보세요.
@@ -132,7 +129,7 @@ describe('일정 CRUD 및 기본 기능', () => {
   });
 });
 
-describe.only('일정 뷰', () => {
+describe('일정 뷰', () => {
   it('주별 뷰를 선택 후 해당 주에 일정이 없으면, 일정이 표시되지 않는다.', async () => {
     const { user } = setup(<App />);
 
@@ -218,17 +215,135 @@ describe.only('일정 뷰', () => {
 });
 
 describe('검색 기능', () => {
-  it('검색 결과가 없으면, "검색 결과가 없습니다."가 표시되어야 한다.', async () => {});
+  const events = [
+    {
+      title: '팀 회의',
+      date: '2024-10-05',
+      startTime: '10:00',
+      endTime: '11:00',
+      description: '주간 팀 미팅',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 1,
+    },
+    {
+      title: '점심시간',
+      date: '2024-10-05',
+      startTime: '13:00',
+      endTime: '14:00',
+      description: '점심',
+      location: '김밥천국',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 1,
+    },
+  ] as Event[];
 
-  it("'팀 회의'를 검색하면 해당 제목을 가진 일정이 리스트에 노출된다", async () => {});
+  it('검색 결과가 없으면, "검색 결과가 없습니다."가 표시되어야 한다.', async () => {
+    const { user } = setup(<App />);
 
-  it('검색어를 지우면 모든 일정이 다시 표시되어야 한다', async () => {});
+    const searchInput = screen.getByLabelText('일정 검색');
+
+    await user.type(searchInput, '저녁 먹기');
+
+    expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+  });
+
+  it("'팀 회의'를 검색하면 해당 제목을 가진 일정이 리스트에 노출된다", async () => {
+    setupMockHandlerCreation(events);
+
+    const { user } = setup(<App />);
+
+    const searchInput = screen.getByLabelText('일정 검색');
+    await user.type(searchInput, '팀 회의');
+
+    const eventList = screen.getByTestId('event-list');
+
+    expect(within(eventList).getByText('팀 회의')).toBeInTheDocument();
+    expect(within(eventList).queryByText('점심시간')).not.toBeInTheDocument();
+  });
+
+  it('검색어를 지우면 모든 일정이 다시 표시되어야 한다', async () => {
+    setupMockHandlerCreation(events);
+
+    const { user } = setup(<App />);
+
+    const searchInput = screen.getByLabelText('일정 검색');
+    await user.type(searchInput, '팀 회의');
+
+    const eventList = screen.getByTestId('event-list');
+
+    expect(within(eventList).getByText('팀 회의')).toBeInTheDocument();
+    expect(within(eventList).queryByText('점심시간')).not.toBeInTheDocument();
+
+    await user.clear(searchInput);
+
+    expect(within(eventList).getByText('팀 회의')).toBeInTheDocument();
+    expect(within(eventList).queryByText('점심시간')).toBeInTheDocument();
+  });
 });
 
 describe('일정 충돌', () => {
-  it('겹치는 시간에 새 일정을 추가할 때 경고가 표시된다', async () => {});
+  it('겹치는 시간에 새 일정을 추가할 때 경고가 표시된다', async () => {
+    setupMockHandlerCreation();
 
-  it('기존 일정의 시간을 수정하여 충돌이 발생하면 경고가 노출된다', async () => {});
+    const { user } = setup(<App />);
+
+    await saveSchedule(user, newEvent);
+
+    await saveSchedule(user, newEvent);
+
+    expect(screen.getByText('일정 겹침 경고')).toBeInTheDocument();
+  });
+
+  it('기존 일정의 시간을 수정하여 충돌이 발생하면 경고가 노출된다', async () => {
+    setupMockHandlerUpdating();
+
+    const { user } = setup(<App />);
+
+    const eventList = screen.getByTestId('event-list');
+
+    await waitFor(() => {
+      expect(within(eventList).getByText('기존 회의')).toBeInTheDocument();
+    });
+
+    const editButton = within(eventList).getAllByLabelText(/edit event/i);
+    await user.click(editButton[1]);
+
+    const startTimeInput = screen.getByLabelText('시작 시간');
+    const endTimeInput = screen.getByLabelText('종료 시간');
+    await user.clear(startTimeInput);
+    await user.clear(endTimeInput);
+
+    await user.type(startTimeInput, '10:00');
+    await user.type(endTimeInput, '09:00');
+
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    const toastMessage = await screen.findAllByText(/시간 설정을 확인해주세요/i);
+    expect(toastMessage[0]).toBeInTheDocument();
+  });
 });
 
-it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트가 노출된다', async () => {});
+it('notificationTime을 10으로 하면 지정 시간 10분 전 알람 텍스트가 노출된다', async () => {
+  setupMockHandlerCreation(initialEvents);
+
+  vi.setSystemTime(new Date('2024-10-15T08:50'));
+
+  const { user } = setup(<App />);
+
+  const eventList = screen.getByTestId('event-list');
+
+  await saveSchedule(user, newEvent);
+
+  act(() => {
+    vi.advanceTimersByTime(1000);
+  });
+
+  await waitFor(() => {
+    expect(within(eventList).getByText('기존 회의')).toBeInTheDocument();
+  });
+
+  expect(screen.getByText('10분 전')).toBeInTheDocument();
+});
