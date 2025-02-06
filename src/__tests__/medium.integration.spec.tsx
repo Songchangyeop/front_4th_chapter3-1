@@ -60,9 +60,9 @@ const initialEvents = [
 describe.only('일정 CRUD 및 기본 기능', () => {
   const newEvent = {
     title: '점심먹기',
-    date: '2025-02-06',
-    startTime: '13:00',
-    endTime: '14:00',
+    date: '2024-10-17',
+    startTime: '10:00',
+    endTime: '11:00',
     description: '점심시간',
     location: '김밥천국',
     category: '기타',
@@ -73,48 +73,63 @@ describe.only('일정 CRUD 및 기본 기능', () => {
   it('입력한 새로운 일정 정보에 맞춰 모든 필드가 이벤트 리스트에 정확히 저장된다.', async () => {
     // ! HINT. event를 추가 제거하고 저장하는 로직을 잘 살펴보고, 만약 그대로 구현한다면 어떤 문제가 있을 지 고민해보세요.
 
-    setupMockHandlerCreation([]);
+    setupMockHandlerCreation();
 
     const { user } = setup(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('검색 결과가 없습니다')).toBeInTheDocument();
+      expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
     });
 
-    // saveSchedule(user, newEvent);
-    const repeatEventTypeSelect = screen.queryByLabelText('반복 유형');
-    const repeatEventInterval = screen.queryByLabelText('반복 간격');
-
-    await user.type(screen.getByLabelText('제목'), newEvent.title);
-    await user.type(screen.getByLabelText('날짜'), newEvent.date);
-    await user.type(screen.getByLabelText('시작 시간'), newEvent.startTime);
-    await user.type(screen.getByLabelText('종료 시간'), newEvent.endTime);
-    await user.type(screen.getByLabelText('설명'), newEvent.description);
-    await user.type(screen.getByLabelText('위치'), newEvent.location);
-    await user.selectOptions(screen.getByLabelText('카테고리'), newEvent.category);
-    await user.click(screen.getByLabelText('반복 일정'));
-    await user.selectOptions(
-      screen.getByLabelText('알림 설정'),
-      newEvent.notificationTime.toString()
-    );
-
-    if (repeatEventTypeSelect) {
-      await user.selectOptions(repeatEventTypeSelect, newEvent.repeat.type);
-    }
-    if (repeatEventInterval) {
-      await user.type(repeatEventInterval, newEvent.repeat.interval.toString());
-    }
-
-    await user.click(screen.getByTestId('event-submit-button'));
+    await saveSchedule(user, newEvent);
 
     const eventList = screen.getByTestId('event-list');
 
     expect(within(eventList).getByText(newEvent.title)).toBeInTheDocument();
   });
 
-  it('기존 일정의 세부 정보를 수정하고 변경사항이 정확히 반영된다', async () => {});
+  it('기존 일정의 세부 정보를 수정하고 변경사항이 정확히 반영된다', async () => {
+    setupMockHandlerUpdating();
 
-  it('일정을 삭제하고 더 이상 조회되지 않는지 확인한다', async () => {});
+    const { user } = setup(<App />);
+
+    const eventList = screen.getByTestId('event-list');
+
+    await waitFor(() => {
+      expect(within(eventList).getByText(initialEvents[0].title)).toBeInTheDocument();
+    });
+
+    const editButton = within(eventList).getAllByLabelText(/edit event/i);
+    await user.click(editButton[0]);
+
+    const titleInput = screen.getByLabelText('제목');
+
+    await user.clear(titleInput);
+    await user.type(titleInput, newEvent.title);
+
+    await user.click(screen.getByTestId('event-submit-button'));
+
+    expect(within(eventList).getByText(newEvent.title)).toBeInTheDocument();
+  });
+
+  it('일정을 삭제하고 더 이상 조회되지 않는지 확인한다', async () => {
+    setupMockHandlerDeletion();
+
+    const { user } = setup(<App />);
+
+    const eventList = screen.getByTestId('event-list');
+
+    await waitFor(() => {
+      expect(within(eventList).getByText('삭제할 이벤트')).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getAllByLabelText(/delete event/i);
+    user.click(deleteButton[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+    });
+  });
 });
 
 describe('일정 뷰', () => {
