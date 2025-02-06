@@ -56,20 +56,20 @@ const initialEvents = [
   },
 ] as Event[];
 
-// ! HINT. "검색 결과가 없습니다"는 초기에 노출되는데요. 그럼 검증하고자 하는 액션이 실행되기 전에 검증해버리지 않을까요? 이 테스트를 신뢰성있게 만드려면 어떻게 할까요?
-describe.only('일정 CRUD 및 기본 기능', () => {
-  const newEvent = {
-    title: '점심먹기',
-    date: '2024-10-17',
-    startTime: '10:00',
-    endTime: '11:00',
-    description: '점심시간',
-    location: '김밥천국',
-    category: '기타',
-    notificationTime: 10,
-    repeat: { type: 'daily', interval: 0, endDate: '2025-02-10' },
-  } as EventForm;
+const newEvent = {
+  title: '점심먹기',
+  date: '2024-10-04',
+  startTime: '10:00',
+  endTime: '11:00',
+  description: '점심시간',
+  location: '김밥천국',
+  category: '기타',
+  notificationTime: 10,
+  repeat: { type: 'daily', interval: 0, endDate: '2025-02-10' },
+} as EventForm;
 
+// ! HINT. "검색 결과가 없습니다"는 초기에 노출되는데요. 그럼 검증하고자 하는 액션이 실행되기 전에 검증해버리지 않을까요? 이 테스트를 신뢰성있게 만드려면 어떻게 할까요?
+describe('일정 CRUD 및 기본 기능', () => {
   it('입력한 새로운 일정 정보에 맞춰 모든 필드가 이벤트 리스트에 정확히 저장된다.', async () => {
     // ! HINT. event를 추가 제거하고 저장하는 로직을 잘 살펴보고, 만약 그대로 구현한다면 어떤 문제가 있을 지 고민해보세요.
 
@@ -132,16 +132,89 @@ describe.only('일정 CRUD 및 기본 기능', () => {
   });
 });
 
-describe('일정 뷰', () => {
-  it('주별 뷰를 선택 후 해당 주에 일정이 없으면, 일정이 표시되지 않는다.', async () => {});
+describe.only('일정 뷰', () => {
+  it('주별 뷰를 선택 후 해당 주에 일정이 없으면, 일정이 표시되지 않는다.', async () => {
+    const { user } = setup(<App />);
 
-  it('주별 뷰 선택 후 해당 일자에 일정이 존재한다면 해당 일정이 정확히 표시된다', async () => {});
+    const viewSelect = screen.getByLabelText('view');
 
-  it('월별 뷰에 일정이 없으면, 일정이 표시되지 않아야 한다.', async () => {});
+    await user.selectOptions(viewSelect, 'week');
 
-  it('월별 뷰에 일정이 정확히 표시되는지 확인한다', async () => {});
+    expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+  });
 
-  it('달력에 1월 1일(신정)이 공휴일로 표시되는지 확인한다', async () => {});
+  it('주별 뷰 선택 후 해당 일자에 일정이 존재한다면 해당 일정이 정확히 표시된다', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+    });
+
+    await saveSchedule(user, newEvent);
+
+    const viewSelect = screen.getByLabelText('view');
+
+    await user.selectOptions(viewSelect, 'week');
+
+    const eventList = screen.getByTestId('event-list');
+
+    expect(within(eventList).getByText(newEvent.title)).toBeInTheDocument();
+  });
+
+  it('월별 뷰에 일정이 없으면, 일정이 표시되지 않아야 한다.', async () => {
+    const { user } = setup(<App />);
+
+    const calendarNextButton = screen.getByLabelText('Next');
+
+    await user.click(calendarNextButton);
+
+    const viewSelect = screen.getByLabelText('view');
+
+    await user.selectOptions(viewSelect, 'month');
+
+    expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+  });
+
+  it('월별 뷰에 일정이 정확히 표시되는지 확인한다', async () => {
+    setupMockHandlerCreation();
+
+    const { user } = setup(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('검색 결과가 없습니다.')).toBeInTheDocument();
+    });
+
+    await saveSchedule(user, newEvent);
+
+    const viewSelect = screen.getByLabelText('view');
+
+    await user.selectOptions(viewSelect, 'month');
+
+    const eventList = screen.getByTestId('event-list');
+
+    expect(within(eventList).getByText(newEvent.title)).toBeInTheDocument();
+  });
+
+  it('달력에 1월 1일(신정)이 공휴일로 표시되는지 확인한다', async () => {
+    const { user } = setup(<App />);
+
+    const calendarPrevButton = screen.getByLabelText('Previous');
+
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+    await user.click(calendarPrevButton);
+
+    const monthCalendar = screen.getByTestId('month-view');
+    expect(within(monthCalendar).getByText('신정')).toBeInTheDocument();
+  });
 });
 
 describe('검색 기능', () => {
