@@ -3,7 +3,7 @@ import { act } from '@testing-library/react';
 import { useEventsStore } from '../../store/eventsStore';
 import { Event } from '../../types';
 
-describe.only('useEventsStore', () => {
+describe('useEventsStore', () => {
   const newEvent = {
     id: '1',
     title: '기존 회의',
